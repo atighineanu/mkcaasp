@@ -77,15 +77,16 @@ var (
 	home = flag.String("repo", "automation", "kubic automation repo location")
 	//pass     = flag.String("pass", "password", "the password for cloud to be hashed (and be exported into openstack.json)")
 	//hash     = flag.String("key", "default", "chose which string is going to be your hash key")
-	cmd      = flag.String("cmd", "", "the orchestration command to run from admin using salt-master container")
-	refresh  = flag.Bool("ref", false, "refreshing the salt grains from admin")
-	disable  = flag.Bool("dis", false, "disabling transactional-update from admin")
-	register = flag.Bool("reg", false, "registering the cluster to SCC")
-	addrepo  = flag.String("ar", "", "adding a repository (based on an URL) to the cluster")
-	sysupd   = flag.Bool("sysupd", false, "triggers transactional-update cleanup dup salt")
-	packupd  = flag.String("packupd", "", "triggers transactional-update with auto-approve for 1 single given package")
-	new      = flag.Bool("new", false, "setting up & updating the fresh spawned cluster")
-	uiupd    = flag.Bool("uiupd", false, "triggers updating of the cluster through Velum")
+	cmd       = flag.String("cmd", "", "the orchestration command to run from admin using salt-master container")
+	refresh   = flag.Bool("ref", false, "refreshing the salt grains from admin")
+	disable   = flag.Bool("dis", false, "disabling transactional-update from admin")
+	register  = flag.Bool("reg", false, "registering the cluster to SCC")
+	addrepo   = flag.String("ar", "", "adding a repository (based on an URL) to the cluster")
+	sysupd    = flag.Bool("sysupd", false, "triggers transactional-update cleanup dup salt")
+	packupd   = flag.String("packupd", "", "triggers transactional-update with auto-approve for 1 single given package")
+	new       = flag.Bool("new", false, "setting up & updating the fresh spawned cluster")
+	uiupd     = flag.Bool("uiupd", false, "triggers updating of the cluster through Velum")
+	exportips = flag.Bool("exportips", false, "sh sourceable output of nodes ips")
 )
 
 const (
@@ -233,5 +234,16 @@ func main() {
 		velumURL := fmt.Sprintf("https://%s.nip.io", a.IPAdminExt.Value)
 		fmt.Fprintf(os.Stdout, "Velum warm up time: %2.2f Seconds\n", utils.CheckVelumUp(velumURL))
 		utils.VelumUpdater(a)
+	}
+	os.Chdir(*home)
+	if *exportips {
+		a := utils.CAASPOutReturner(*openstack, *home, caaspDir)
+		//		for _, el := range a.IPMastersExt.Value {
+		//			fmt.Println(el)
+		//		}
+		fmt.Printf("export CAASP_ADMIN_EXT_IP=\"%s\"\n", a.IPAdminExt.Value)
+		fmt.Printf("export CAASP_MASTER_EXT_IPS=\"%s\"\n", strings.Join(a.IPMastersExt.Value, " "))
+		fmt.Printf("export CAASP_WORKER_EXT_IPS=\"%s\"\n", strings.Join(a.IPMastersExt.Value, " "))
+
 	}
 }
